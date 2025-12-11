@@ -1,131 +1,181 @@
----
 Name: SetX.exe
-Description: Microsoft-signed utility used to create or modify user and system environment variables. Supports registry extraction, remote execution context, and coordinate-based file parsing. Useful for persistence, execution flow hijacking, discovery, and lateral movement.
+Description: Microsoft-signed utility used to create or modify user and system environment variables, including registry extraction, remote variable creation, and file parsing.
 Aliases:
   - Alias: setx64.exe
 Author: Raja Singh
 Created: 2025-12-10
 
 Commands:
+
+  # Basic Variable Assignment
   - Command: setx MACHINE COMPAQ
     Description: Creates or updates a user environment variable.
-    Usecase: Persistent environment modification.
-    Category: Hijack Execution Flow
+    Usecase: Persistent variable modification.
+    Category: Tamper
     Privileges: User
     MitreID: T1547
-    OperatingSystem: Windows
+    OperatingSystem: Windows 7–11; Windows Server 2012–2022
+    Tags:
+      - Purpose: EnvModification
+      - Risk: Persistence
 
   - Command: setx MACHINE "COMPAQ COMPUTER" /M
-    Description: Creates or updates a system-wide environment variable.
-    Usecase: System-level persistence.
-    Category: Hijack Execution Flow
+    Description: Creates or updates a system environment variable.
+    Usecase: System-wide persistence.
+    Category: Tamper
     Privileges: Administrator
     MitreID: T1547
-    OperatingSystem: Windows
+    OperatingSystem: Windows 7–11; Windows Server 2012–2022
+    Tags:
+      - Purpose: SystemPersistence
+      - Risk: ExecutionHijack
 
+  # PATH Hijacking
   - Command: setx MYPATH %PATH%
-    Description: Copies current PATH into a new variable.
-    Usecase: Allows PATH manipulation before hijack.
-    Category: Hijack Execution Flow
+    Description: Copies PATH to a new variable.
+    Usecase: Prepare for PATH hijacking.
+    Category: Tamper
     Privileges: User
     MitreID: T1574.009
-    OperatingSystem: Windows
+    OperatingSystem: Windows 7–11; Windows Server 2012–2022
+    Tags:
+      - Purpose: PathCopy
+      - Risk: HijackPrep
 
   - Command: setx MYPATH ~PATH~
-    Description: Uses tilde syntax to copy PATH.
-    Usecase: Introduce malicious directories for execution hijacking.
-    Category: Hijack Execution Flow
+    Description: Copies PATH with tilde expansion.
+    Usecase: Modify PATH to insert malicious directories.
+    Category: Tamper
     Privileges: User
     MitreID: T1574.009
-    OperatingSystem: Windows
+    OperatingSystem: Windows 7–11; Windows Server 2012–2022
+    Tags:
+      - Purpose: PathManipulation
+      - Risk: ExecutionHijack
 
+  # Remote Execution Context
   - Command: setx /S system /U user /P password MACHINE COMPAQ
     Description: Creates a variable on a remote host.
-    Usecase: Remote persistence without shell access.
-    Category: Lateral Movement
+    Usecase: Remote persistence.
+    Category: Upload
     Privileges: DomainUser
     MitreID: T1021
-    OperatingSystem: Windows
+    OperatingSystem: Windows 7–11; Windows Server 2012–2022
+    Tags:
+      - Purpose: RemoteWrite
+      - Risk: LateralMovement
 
   - Command: setx /S system /U user /P password MYPATH ^%PATH^%
-    Description: Writes variables to remote host using escaped syntax.
-    Usecase: Environment poisoning on remote machines.
-    Category: Lateral Movement
+    Description: Writes variables remotely using escaped syntax.
+    Usecase: Remote environment poisoning.
+    Category: Upload
     Privileges: DomainUser
     MitreID: T1021
-    OperatingSystem: Windows
+    OperatingSystem: Windows 7–11; Windows Server 2012–2022
+    Tags:
+      - Purpose: RemotePoisoning
+      - Risk: LMPreAttack
 
+  # Registry Extraction (/K)
   - Command: setx TZONE /K HKEY_LOCAL_MACHINE\System\CurrentControlSet\Control\TimeZoneInformation\StandardName
     Description: Extracts registry value into an environment variable.
-    Usecase: Harvest registry data without reg.exe or PowerShell.
-    Category: Collection
+    Usecase: Collect system configuration without reg.exe.
+    Category: Reconnaissance
     Privileges: User
     MitreID: T1005
-    OperatingSystem: Windows
+    OperatingSystem: Windows 7–11; Windows Server 2012–2022
+    Tags:
+      - Purpose: RegistryRead
+      - Risk: DataGathering
 
   - Command: setx BUILD /K "HKEY_LOCAL_MACHINE\Software\Microsoft\Windows NT\CurrentVersion\CurrentBuildNumber" /M
-    Description: Extracts build number and writes it as system variable.
-    Usecase: Persistence with registry-derived data.
-    Category: Persistence
+    Description: Extracts build number into a system variable.
+    Usecase: Persist configuration state.
+    Category: Reconnaissance
     Privileges: Administrator
     MitreID: T1547
-    OperatingSystem: Windows
+    OperatingSystem: Windows 7–11; Windows Server 2012–2022
+    Tags:
+      - Purpose: BuildInfo
+      - Risk: ReconPersistence
 
   - Command: setx /S system /U user /P password TZONE /K HKEY_LOCAL_MACHINE\System\CurrentControlSet\Control\TimeZoneInformation\StandardName
-    Description: Extracts registry data remotely into variables.
-    Usecase: Remote discovery and persistence.
-    Category: Lateral Movement
+    Description: Remote registry extraction.
+    Usecase: Discovery across hosts.
+    Category: Upload
     Privileges: DomainUser
     MitreID: T1021
-    OperatingSystem: Windows
+    OperatingSystem: Windows 7–11; Windows Server 2012–2022
+    Tags:
+      - Purpose: RemoteRecon
+      - Risk: LateralMovement
 
   - Command: setx /S system /U user /P password BUILD /K "HKEY_LOCAL_MACHINE\Software\Microsoft\Windows NT\CurrentVersion\CurrentBuildNumber" /M
-    Description: Writes system variables on remote host using registry data.
-    Usecase: Cross-host persistent config poisoning.
-    Category: Lateral Movement
+    Description: Writes system registry values remotely.
+    Usecase: Cross-host persistence.
+    Category: Upload
     Privileges: DomainAdmin
     MitreID: T1021
-    OperatingSystem: Windows
+    OperatingSystem: Windows 7–11; Windows Server 2012–2022
+    Tags:
+      - Purpose: RemoteBuildWrite
+      - Risk: CrossHostPersistence
 
+  # File Parsing (Syntax 3)
   - Command: setx /F ipconfig.out /X
-    Description: Displays a file with coordinate references.
-    Usecase: Covert file reading without type/more.
-    Category: Discovery
+    Description: Displays file content via coordinate rendering.
+    Usecase: Covert file reading.
+    Category: Reconnaissance
     Privileges: User
     MitreID: T1083
-    OperatingSystem: Windows
+    OperatingSystem: Windows 7–11; Windows Server 2012–2022
+    Tags:
+      - Purpose: FileRead
+      - Risk: DataLeak
 
   - Command: setx IPADDR /F ipconfig.out /A 5,11
-    Description: Extracts text at absolute coordinates.
-    Usecase: Extract sensitive info from dumped output.
-    Category: Discovery
+    Description: Extracts text at file coordinates.
+    Usecase: Extract sensitive values.
+    Category: Reconnaissance
     Privileges: User
     MitreID: T1083
-    OperatingSystem: Windows
+    OperatingSystem: Windows 7–11; Windows Server 2012–2022
+    Tags:
+      - Purpose: CoordinateExtract
+      - Risk: SensitiveInfoGrab
 
   - Command: setx OCTET1 /F ipconfig.out /A 5,3 /D "#$*."
-    Description: Parses file content using delimiter tokens.
-    Usecase: Structured data extraction.
-    Category: Discovery
+    Description: Parses file content using custom delimiters.
+    Usecase: Extract structured data.
+    Category: Reconnaissance
     Privileges: User
     MitreID: T1083
-    OperatingSystem: Windows
+    OperatingSystem: Windows 7–11; Windows Server 2012–2022
+    Tags:
+      - Purpose: DelimiterParsing
+      - Risk: StructuredLeak
 
   - Command: setx IPGATEWAY /F ipconfig.out /R 0,7 Gateway
-    Description: Extracts text relative to a matched pattern.
-    Usecase: Pattern-based file parsing like grep/awk.
-    Category: Discovery
+    Description: Extracts text relative to keyword.
+    Usecase: Pattern-based extraction.
+    Category: Reconnaissance
     Privileges: User
     MitreID: T1083
-    OperatingSystem: Windows
+    OperatingSystem: Windows 7–11; Windows Server 2012–2022
+    Tags:
+      - Purpose: PatternExtract
+      - Risk: InfraRecon
 
   - Command: setx /S system /U user /P password /F c:\ipconfig.out /X
-    Description: Remote file read using SetX.
-    Usecase: File discovery without remote shell.
-    Category: Lateral Movement
+    Description: Reads file contents remotely.
+    Usecase: Remote file reconnaissance.
+    Category: Upload
     Privileges: DomainUser
     MitreID: T1021
-    OperatingSystem: Windows
+    OperatingSystem: Windows 7–11; Windows Server 2012–2022
+    Tags:
+      - Purpose: RemoteFileRead
+      - Risk: LMRecon
 
 Full_Path:
   - Path: C:\Windows\System32\setx.exe
@@ -141,11 +191,10 @@ Code_Sample:
 
 Detection:
   - IOC: Modification of PATH, COMSPEC, WINDIR, PATHEXT, TEMP, TMP
-  - IOC: SetX usage with /M from untrusted process
-  - IOC: Remote variable creation via /S /U /P
-  - IOC: Registry extraction via /K from sensitive paths
+  - IOC: System variable modification via /M
+  - IOC: Remote SetX usage via /S /U /P
+  - IOC: Registry extraction using /K
   - IOC: Coordinate-based parsing (/A, /R, /X)
-  - Analysis: Environment manipulation followed by suspicious execution
 
 Resources:
   - Link: https://learn.microsoft.com/en-us/windows-server/administration/windows-commands/setx
